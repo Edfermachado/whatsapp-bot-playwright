@@ -4,4 +4,4 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .pdm-python
-storage_state.json
+whatsapp_session/

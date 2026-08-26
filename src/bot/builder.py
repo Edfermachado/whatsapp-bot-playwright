@@ -4,14 +4,19 @@ import os
 class BotBuilder:
     def __init__(self):
         self._playwright = None
-        self._browser = None
         self._context = None
         self._page = None
-        self._storage_state_path = "storage_state.json"
+        self._user_data_dir = "whatsapp_session"
         self._headless = False
 
+    def set_user_data_dir(self, path: str):
+        self._user_data_dir = path
+        return self
+        
     def set_storage_path(self, path: str):
-        self._storage_state_path = path
+        # Mantenemos este método para compatibilidad con main.py
+        # Usamos el nombre base sin extensión
+        self._user_data_dir = path.replace(".json", "")
         return self
 
     def set_headless(self, headless: bool):
@@ -20,27 +25,29 @@ class BotBuilder:
 
     def build(self) -> Page:
         self._playwright = sync_playwright().start()
-        # Headless mode should be False for WhatsApp Web as it requires scanning QR and sometimes headless is detected
-        self._browser = self._playwright.chromium.launch(headless=self._headless)
         
-        # Check if storage state exists for session persistence
-        if os.path.exists(self._storage_state_path):
-            print(f"Cargando sesión guardada desde {self._storage_state_path}")
-            self._context = self._browser.new_context(storage_state=self._storage_state_path)
-        else:
-            print("No se encontró sesión guardada. Se requerirá escanear el QR.")
-            self._context = self._browser.new_context()
+        print(f"Iniciando sesión persistente en: {self._user_data_dir}")
+        # Usamos launch_persistent_context en lugar de storage_state
+        # Esto es vital para WhatsApp Web porque usa IndexedDB (el cual storage_state no guarda).
+        self._context = self._playwright.chromium.launch_persistent_context(
+            user_data_dir=self._user_data_dir,
+            headless=self._headless
+        )
 
-        self._page = self._context.new_page()
+        # En contextos persistentes se abre una pestaña por defecto
+        if len(self._context.pages) > 0:
+            self._page = self._context.pages[0]
+        else:
+            self._page = self._context.new_page()
+            
         return self._page
 
     def save_session(self):
-        if self._context:
-            self._context.storage_state(path=self._storage_state_path)
-            print(f"Sesión guardada en {self._storage_state_path}")
+        # Con launch_persistent_context, se guarda todo al vuelo de forma automática.
+        print(f"Sesión persistida automáticamente en el directorio {self._user_data_dir}")
 
     def teardown(self):
-        if self._browser:
-            self._browser.close()
+        if self._context:
+            self._context.close()
         if self._playwright:
             self._playwright.stop()
