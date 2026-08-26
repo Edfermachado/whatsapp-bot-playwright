@@ -3,8 +3,23 @@ from src.bot.builder import BotBuilder
 from src.bot.strategy import WhatsAppStrategy
 
 def get_target_phone() -> str:
-    # Se fija el número destinatario tal como lo solicitaste
-    return "+5804244553000"
+    service_name = "whatsapp_bot"
+    username = "target_phone"
+    saved_phone = keyring.get_password(service_name, username)
+    
+    if saved_phone:
+        print(f"\nTeléfono destino guardado actualmente: {saved_phone}")
+        phone = input("Presiona Enter para usar este número, o escribe uno nuevo: ").strip()
+        if not phone:
+            return saved_phone
+    else:
+        phone = input("Por favor, ingresa el número de teléfono destino con código de país (ej. +5491123456789): ").strip()
+        while not phone:
+            phone = input("El número no puede estar vacío. Ingresa el número: ").strip()
+            
+    keyring.set_password(service_name, username, phone)
+    print("Número actualizado/guardado en el keyring del sistema.")
+    return phone
 
 def main():
     phone = get_target_phone()
