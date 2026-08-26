@@ -23,8 +23,13 @@ class WhatsAppPage:
         # El cuadro de texto tiene un contenteditable y está dentro del footer.
         textbox = self.page.locator('#main footer div[contenteditable="true"]')
         textbox.wait_for(state="visible")
-        textbox.click()
-        textbox.fill(message)
+        # Forzamos el click en caso de que Playwright considere que hay un elemento superpuesto
+        textbox.click(force=True)
+        
+        # En el editor moderno de WhatsApp (Lexical), 'fill' a veces no dispara los eventos de React.
+        # Utilizar 'insert_text' garantiza que el texto se pegue como si el usuario lo hubiera escrito.
+        self.page.keyboard.insert_text(message)
+        time.sleep(0.5)
         
         # Enviar usando la tecla Enter
         self.page.keyboard.press("Enter")
