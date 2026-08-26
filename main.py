@@ -26,8 +26,9 @@ def main():
     
     # Mensaje a enviar
     message = (
-        "Tarea finalizada.\n"
-        "Patrones utilizados: Builder, Page Object Model, Strategy."
+        "Segunda Tarea finalizada.\n"
+        "Patrones utilizados: Builder, Page Object Model, Strategy.\n"
+        "Repositorio: https://github.com/Edfermachado/whatsapp-bot-playwright"
     )
 
     # Patrón Builder para configurar el bot
