@@ -27,8 +27,13 @@ class WhatsAppPage:
         textbox.click(force=True)
         
         # En el editor moderno de WhatsApp (Lexical), 'fill' a veces no dispara los eventos de React.
-        # Utilizar 'insert_text' garantiza que el texto se pegue como si el usuario lo hubiera escrito.
-        self.page.keyboard.insert_text(message)
+        # Además, al usar '\n', Playwright puede enviar el mensaje prematuramente. 
+        # La solución es dividir por líneas y usar Shift+Enter para los saltos de línea.
+        for i, line in enumerate(message.split('\n')):
+            self.page.keyboard.insert_text(line)
+            if i < len(message.split('\n')) - 1:
+                self.page.keyboard.press("Shift+Enter")
+                
         time.sleep(0.5)
         
         # Enviar usando la tecla Enter
